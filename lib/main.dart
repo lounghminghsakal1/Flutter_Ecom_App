@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter2/screens/cart_screen.dart';
+import 'package:flutter2/screens/wishlist_screen.dart';
 import 'package:flutter2/widgets/product_card2.dart';
 import '../models/product_model.dart';
 import '../services/product_api.dart';
@@ -35,8 +37,8 @@ class _HomePageState extends State<HomePage> {
   List<Widget> get _pages => [
     Homebody(),
     FiltersScreen(), // Now works!
-    Center(child: Text("Cart Screen")),
-    Center(child: Text("Wish List Screen")),
+    CartScreen(),
+    WishlistScreen(),
   ];
 
   @override
@@ -62,20 +64,21 @@ class _HomePageState extends State<HomePage> {
             onPressed: () {
               print("Search icon clicked");
             },
-            icon: Icon(Icons.search),
+            icon: Icon(Icons.search,color: Colors.white,),
           ),
           SizedBox(width: 10),
           IconButton(
             onPressed: () {
               print("Cart icon clicked");
             },
-            icon: Icon(Icons.shopping_cart),
+            icon: Icon(Icons.shopping_cart,color: Colors.white,),
           ),
           SizedBox(width: 10),
         ],
         backgroundColor: Colors.grey[500],
       ),
       drawer: Drawer(
+        
         child: Column(
           children: [
             DrawerHeader(
@@ -84,10 +87,36 @@ class _HomePageState extends State<HomePage> {
                 style: TextStyle(fontSize: 25, fontWeight: FontWeight.bold),
               ),
             ),
-            ListTile(title: Text("Home")),
-            ListTile(title: Text("Products")),
-            ListTile(title: Text("Cart")),
-            ListTile(title: Text("WishList")),
+            ListTile(title: Text("Home"), onTap: () {
+              Navigator.pop(context);
+            }),
+            ListTile(
+              title: Text("Products"),
+              onTap: () {
+                setState(() {
+                  currentIndex = 1;
+                  Navigator.pop(context);
+                });
+              },
+            ),
+            ListTile(
+              title: Text("Cart"),
+              onTap: () {
+                setState(() {
+                  currentIndex = 2;
+                  Navigator.pop(context);
+                });
+              },
+            ),
+            ListTile(
+              title: Text("WishList"),
+              onTap: () {
+                setState(() {
+                  currentIndex = 3;
+                  Navigator.pop(context);
+                });
+              },
+            ),
           ],
         ),
       ),
@@ -177,7 +206,7 @@ class _FeaturedCategoriesState extends State<FeaturedCategories> {
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body) as List;
-        
+
         // Take first 6 categories and format them
         setState(() {
           categories = data.take(6).map((cat) {
@@ -214,20 +243,27 @@ class _FeaturedCategoriesState extends State<FeaturedCategories> {
   // Generate icon for each category
   IconData getCategoryIcon(String category) {
     String lowerCategory = category.toLowerCase();
-    
-    if (lowerCategory.contains('beauty') || lowerCategory.contains('fragrance')) {
+
+    if (lowerCategory.contains('beauty') ||
+        lowerCategory.contains('fragrance')) {
       return Icons.face;
-    } else if (lowerCategory.contains('furniture') || lowerCategory.contains('home')) {
+    } else if (lowerCategory.contains('furniture') ||
+        lowerCategory.contains('home')) {
       return Icons.chair;
-    } else if (lowerCategory.contains('grocery') || lowerCategory.contains('food')) {
+    } else if (lowerCategory.contains('grocery') ||
+        lowerCategory.contains('food')) {
       return Icons.shopping_basket;
-    } else if (lowerCategory.contains('phone') || lowerCategory.contains('mobile')) {
+    } else if (lowerCategory.contains('phone') ||
+        lowerCategory.contains('mobile')) {
       return Icons.smartphone;
-    } else if (lowerCategory.contains('laptop') || lowerCategory.contains('computer')) {
+    } else if (lowerCategory.contains('laptop') ||
+        lowerCategory.contains('computer')) {
       return Icons.laptop;
-    } else if (lowerCategory.contains('vehicle') || lowerCategory.contains('automotive')) {
+    } else if (lowerCategory.contains('vehicle') ||
+        lowerCategory.contains('automotive')) {
       return Icons.directions_car;
-    } else if (lowerCategory.contains('watch') || lowerCategory.contains('accessories')) {
+    } else if (lowerCategory.contains('watch') ||
+        lowerCategory.contains('accessories')) {
       return Icons.watch;
     } else if (lowerCategory.contains('tablet')) {
       return Icons.tablet;
@@ -235,14 +271,18 @@ class _FeaturedCategoriesState extends State<FeaturedCategories> {
       return Icons.sports_soccer;
     } else if (lowerCategory.contains('kitchen')) {
       return Icons.kitchen;
-    } else if (lowerCategory.contains('shirt') || lowerCategory.contains('top') || 
-               lowerCategory.contains('dress') || lowerCategory.contains('clothing')) {
+    } else if (lowerCategory.contains('shirt') ||
+        lowerCategory.contains('top') ||
+        lowerCategory.contains('dress') ||
+        lowerCategory.contains('clothing')) {
       return Icons.checkroom;
     } else if (lowerCategory.contains('shoe')) {
       return Icons.shop;
-    } else if (lowerCategory.contains('bag') || lowerCategory.contains('luggage')) {
+    } else if (lowerCategory.contains('bag') ||
+        lowerCategory.contains('luggage')) {
       return Icons.shopping_bag;
-    } else if (lowerCategory.contains('jewel') || lowerCategory.contains('jewelry')) {
+    } else if (lowerCategory.contains('jewel') ||
+        lowerCategory.contains('jewelry')) {
       return Icons.diamond;
     } else if (lowerCategory.contains('sunglasses')) {
       return Icons.wb_sunny;
@@ -260,7 +300,7 @@ class _FeaturedCategoriesState extends State<FeaturedCategories> {
           style: TextStyle(fontSize: 30, fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 10),
-        
+
         isLoading
             ? const Center(
                 child: Padding(
@@ -269,77 +309,79 @@ class _FeaturedCategoriesState extends State<FeaturedCategories> {
                 ),
               )
             : categories.isEmpty
-                ? const Center(
-                    child: Padding(
-                      padding: EdgeInsets.all(20.0),
-                      child: Text('No categories available'),
-                    ),
-                  )
-                : GridView.builder(
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 3,
-                      crossAxisSpacing: 6,
-                      mainAxisSpacing: 6,
-                      childAspectRatio: 0.85,
-                    ),
-                    itemCount: categories.length,
-                    itemBuilder: (context, index) {
-                      final category = categories[index];
-                      return GestureDetector(
-                        onTap: () {
-                          // Navigate to FiltersScreen with selected category
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => FiltersScreen(
-                                categorySlug: category['slug'],
-                                categoryName: category['name'],
-                              ),
-                            ),
-                          );
-                        },
-                        child: Container(
-                          decoration: BoxDecoration(
-                            color: getCategoryColor(index),
-                            borderRadius: BorderRadius.circular(8),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.grey.shade300,
-                                blurRadius: 4,
-                                offset: const Offset(0, 2),
-                              ),
-                            ],
-                          ),
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(
-                                getCategoryIcon(category['name']),
-                                size: 50,
-                                color: Colors.grey.shade700,
-                              ),
-                              const SizedBox(height: 8),
-                              Padding(
-                                padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                                child: Text(
-                                  category['name'],
-                                  style: const TextStyle(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                  textAlign: TextAlign.center,
-                                  maxLines: 2,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ),
-                            ],
+            ? const Center(
+                child: Padding(
+                  padding: EdgeInsets.all(20.0),
+                  child: Text('No categories available'),
+                ),
+              )
+            : GridView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 3,
+                  crossAxisSpacing: 6,
+                  mainAxisSpacing: 6,
+                  childAspectRatio: 0.85,
+                ),
+                itemCount: categories.length,
+                itemBuilder: (context, index) {
+                  final category = categories[index];
+                  return GestureDetector(
+                    onTap: () {
+                      // Navigate to FiltersScreen with selected category
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => FiltersScreen(
+                            categorySlug: category['slug'],
+                            categoryName: category['name'],
                           ),
                         ),
                       );
                     },
-                  ),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: getCategoryColor(index),
+                        borderRadius: BorderRadius.circular(8),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.grey.shade300,
+                            blurRadius: 4,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            getCategoryIcon(category['name']),
+                            size: 50,
+                            color: Colors.grey.shade700,
+                          ),
+                          const SizedBox(height: 8),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8.0,
+                            ),
+                            child: Text(
+                              category['name'],
+                              style: const TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                              ),
+                              textAlign: TextAlign.center,
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                },
+              ),
       ],
     );
   }
@@ -392,21 +434,20 @@ class _TrendingProductsState extends State<TrendingProducts> {
         else
           ...trendingProducts.map((product) {
             return GridView.builder(
-                              shrinkWrap: true,
-                              physics: const NeverScrollableScrollPhysics(),
-                              gridDelegate:
-                                  const SliverGridDelegateWithFixedCrossAxisCount(
-                                    crossAxisCount: 2,
-                                    childAspectRatio: 0.6,
-                                    crossAxisSpacing: 12,
-                                    mainAxisSpacing: 12,
-                                  ),
-                              itemCount: trendingProducts.length,
-                              itemBuilder: (context, index) {
-                                final product = trendingProducts[index];
-                                return ProductCard2(product: product);
-                              },
-                            );
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 2,
+                childAspectRatio: 0.6,
+                crossAxisSpacing: 12,
+                mainAxisSpacing: 12,
+              ),
+              itemCount: trendingProducts.length,
+              itemBuilder: (context, index) {
+                final product = trendingProducts[index];
+                return ProductCard2(product: product);
+              },
+            );
           }),
       ],
     );
@@ -421,11 +462,8 @@ class FiltersScreen extends StatefulWidget {
   final String? categorySlug;
   final String? categoryName;
 
-  const FiltersScreen({
-    Key? key,
-    this.categorySlug,
-    this.categoryName,
-  }) : super(key: key);
+  const FiltersScreen({Key? key, this.categorySlug, this.categoryName})
+    : super(key: key);
 
   @override
   State<FiltersScreen> createState() => _FiltersScreenState();
@@ -467,13 +505,15 @@ class _FiltersScreenState extends State<FiltersScreen> {
   Future<void> fetchData() async {
     try {
       List<Product> res;
-      
+
       // If category is provided, fetch products from that category
       if (widget.categorySlug != null) {
         final response = await http.get(
-          Uri.parse('https://dummyjson.com/products/category/${widget.categorySlug}'),
+          Uri.parse(
+            'https://dummyjson.com/products/category/${widget.categorySlug}',
+          ),
         );
-        
+
         if (response.statusCode == 200) {
           final data = json.decode(response.body);
           res = (data['products'] as List)
@@ -487,7 +527,7 @@ class _FiltersScreenState extends State<FiltersScreen> {
         final response = await http.get(
           Uri.parse('https://dummyjson.com/products?limit=100'),
         );
-        
+
         if (response.statusCode == 200) {
           final data = json.decode(response.body);
           res = (data['products'] as List)
@@ -503,7 +543,10 @@ class _FiltersScreenState extends State<FiltersScreen> {
         isLoading = false;
 
         // Extract unique brands from products
-        Set<String> uniqueBrands = res.map((p) => p.brand).where((b) => b.isNotEmpty).toSet();
+        Set<String> uniqueBrands = res
+            .map((p) => p.brand)
+            .where((b) => b.isNotEmpty)
+            .toSet();
         brands = {for (var brand in uniqueBrands) brand: false};
       });
     } catch (err) {
@@ -548,7 +591,7 @@ class _FiltersScreenState extends State<FiltersScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final filteredProducts = getFilteredProducts();
+    final List<Product> filteredProducts = getFilteredProducts();
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -557,7 +600,10 @@ class _FiltersScreenState extends State<FiltersScreen> {
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.black),
-          onPressed: () => Navigator.pop(context),
+          onPressed: () => Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => HomePage()),
+          ),
         ),
         title: Text(
           widget.categoryName ?? 'All Products',
@@ -636,19 +682,20 @@ class _FiltersScreenState extends State<FiltersScreen> {
                                   vertical: 12,
                                 ),
                               ),
-                              items: [
-                                'Newest',
-                                'Price: Low to High',
-                                'Price: High to Low',
-                                'Rating',
-                              ]
-                                  .map(
-                                    (e) => DropdownMenuItem(
-                                      value: e,
-                                      child: Text(e),
-                                    ),
-                                  )
-                                  .toList(),
+                              items:
+                                  [
+                                        'Newest',
+                                        'Price: Low to High',
+                                        'Price: High to Low',
+                                        'Rating',
+                                      ]
+                                      .map(
+                                        (e) => DropdownMenuItem(
+                                          value: e,
+                                          child: Text(e),
+                                        ),
+                                      )
+                                      .toList(),
                               onChanged: (val) => setState(() => sortBy = val!),
                             ),
                             const SizedBox(height: 16),
@@ -694,9 +741,9 @@ class _FiltersScreenState extends State<FiltersScreen> {
                                           ListTileControlAffinity.leading,
                                       contentPadding:
                                           const EdgeInsets.symmetric(
-                                        horizontal: 8,
-                                        vertical: -8,
-                                      ),
+                                            horizontal: 8,
+                                            vertical: -8,
+                                          ),
                                       dense: true,
                                       onChanged: (val) =>
                                           setState(() => brands[brand] = val!),
@@ -744,9 +791,7 @@ class _FiltersScreenState extends State<FiltersScreen> {
                                       ),
                                       borderRadius: BorderRadius.circular(8),
                                     ),
-                                    child: Text(
-                                      '\$${priceRange.end.round()}',
-                                    ),
+                                    child: Text('\$${priceRange.end.round()}'),
                                   ),
                                 ),
                               ],
@@ -853,11 +898,11 @@ class _FiltersScreenState extends State<FiltersScreen> {
                               physics: const NeverScrollableScrollPhysics(),
                               gridDelegate:
                                   const SliverGridDelegateWithFixedCrossAxisCount(
-                                crossAxisCount: 2,
-                                childAspectRatio: 0.6,
-                                crossAxisSpacing: 12,
-                                mainAxisSpacing: 12,
-                              ),
+                                    crossAxisCount: 2,
+                                    childAspectRatio: 0.6,
+                                    crossAxisSpacing: 12,
+                                    mainAxisSpacing: 12,
+                                  ),
                               itemCount: filteredProducts.length,
                               itemBuilder: (context, index) {
                                 final product = filteredProducts[index];
