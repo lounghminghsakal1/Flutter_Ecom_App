@@ -115,16 +115,10 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
           icon: Icon(Icons.arrow_back, color: Colors.black),
           onPressed: () => Navigator.pop(context),
         ),
-        actions: [
-          IconButton(
-            icon: Icon(Icons.search, color: Colors.black),
-            onPressed: () {},
-          ),
-          IconButton(
-            icon: Icon(Icons.bookmark_border, color: Colors.black),
-            onPressed: () {},
-          ),
-        ],
+        title: Text(
+          "${product?.title} details",
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
       ),
       body: GestureDetector(
         behavior: HitTestBehavior.opaque,
@@ -313,7 +307,6 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                                   backgroundColor: Colors.green,
                                   behavior: SnackBarBehavior.floating,
                                   margin: EdgeInsets.all(12),
-                                  
                                 ),
                               );
                             },
@@ -357,8 +350,8 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                                     ),
                                   ),
                                   behavior: SnackBarBehavior.floating,
-                                  duration: Duration(seconds: 3),margin: EdgeInsets.all(12),
-                                  
+                                  duration: Duration(seconds: 3),
+                                  margin: EdgeInsets.all(12),
                                 ),
                               );
                             },

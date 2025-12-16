@@ -8,6 +8,7 @@ import '../widgets/product_card.dart';
 import '../widgets/product_card2.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import './screens/product_details_screen.dart';
 
 void main() {
   runApp(const MyApp());
@@ -18,7 +19,7 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(home: const HomePage());
+    return MaterialApp(home: const HomePage(),debugShowCheckedModeBanner: false,);
   }
 }
 
@@ -33,52 +34,108 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   int currentIndex = 0;
+  bool isSearching = false;
+  TextEditingController searchController = TextEditingController();
+  List<Product> filteredProducts = [];
+  List<Product> allProducts = [];
 
   List<Widget> get _pages => [
     Homebody(),
-    FiltersScreen(), // Now works!
+    FiltersScreen(),
     CartScreen(),
     WishlistScreen(),
   ];
 
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
+    searchController.addListener(_filterProducts);
+    fetchData();
+  }
+
+  @override
+  void dispose() {
+    searchController.dispose();
+    super.dispose();
+  }
+
+  Future<void> fetchData() async {
+    print("Fetchhing data");
+    try {
+      final res = await ProductApi.fetchProducts();
+      setState(() {
+        allProducts = res;
+      });
+      print(allProducts[0]);
+    } catch (err) {
+      print("Error in data fetching $err");
+    }
+  }
+
+  void _filterProducts() {
+    setState(() {
+      if (searchController.text.isEmpty) {
+        filteredProducts = [];
+      } else {
+        filteredProducts = allProducts
+            .where(
+              (product) => product.title.toLowerCase().contains(
+                searchController.text.toLowerCase(),
+              ),
+            )
+            .toList();
+      }
+    });
+  }
+
+  void _toggleSearch() {
+    setState(() {
+      isSearching = !isSearching;
+      if (!isSearching) {
+        searchController.clear();
+        filteredProducts = [];
+      }
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(
-          "Sakal Shop",
-          style: TextStyle(
-            color: Colors.grey[300],
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        // leading: IconButton(onPressed: () {}, icon: Icon(Icons.menu)),
+        title: isSearching
+            ? TextField(
+                controller: searchController,
+                autofocus: true,
+                style: TextStyle(color: Colors.white),
+                decoration: InputDecoration(
+                  hintText: "Search products...",
+                  hintStyle: TextStyle(color: Colors.grey[800]),
+                  filled: true,
+                  fillColor: Colors.grey[200],
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.all(Radius.circular(15)),
+                  ),
+                ),
+              )
+            : Text(
+                "Sakal Shop",
+                style: TextStyle(
+                  color: Colors.grey[300],
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
         actions: [
           IconButton(
-            onPressed: () {
-              print("Search icon clicked");
-            },
-            icon: Icon(Icons.search,color: Colors.white,),
+            onPressed: _toggleSearch,
+            icon: Icon(
+              isSearching ? Icons.close : Icons.search,
+              color: Colors.white,
+            ),
           ),
-          SizedBox(width: 10),
-          IconButton(
-            onPressed: () {
-              print("Cart icon clicked");
-            },
-            icon: Icon(Icons.shopping_cart,color: Colors.white,),
-          ),
-          SizedBox(width: 10),
         ],
         backgroundColor: Colors.grey[500],
       ),
       drawer: Drawer(
-        
         child: Column(
           children: [
             DrawerHeader(
@@ -87,9 +144,12 @@ class _HomePageState extends State<HomePage> {
                 style: TextStyle(fontSize: 25, fontWeight: FontWeight.bold),
               ),
             ),
-            ListTile(title: Text("Home"), onTap: () {
-              Navigator.pop(context);
-            }),
+            ListTile(
+              title: Text("Home"),
+              onTap: () {
+                Navigator.pop(context);
+              },
+            ),
             ListTile(
               title: Text("Products"),
               onTap: () {
@@ -120,7 +180,76 @@ class _HomePageState extends State<HomePage> {
           ],
         ),
       ),
-      body: _pages[currentIndex], //decides which page to show
+      body: Stack(
+        children: [
+          _pages[currentIndex],
+          if (isSearching && searchController.text.isNotEmpty)
+            Positioned(
+              top: 0,
+              left: 0,
+              right: 0,
+              child: Material(
+                elevation: 4,
+                child: Container(
+                  constraints: BoxConstraints(
+                    maxHeight: MediaQuery.of(context).size.height * 0.6,
+                  ),
+                  color: Colors.white,
+                  child: filteredProducts.isEmpty
+                      ? Padding(
+                          padding: const EdgeInsets.all(16.0),
+                          child: Text(
+                            "No products found",
+                            style: TextStyle(color: Colors.grey),
+                          ),
+                        )
+                      : ListView.builder(
+                          shrinkWrap: true,
+                          itemCount: filteredProducts.length,
+                          itemBuilder: (context, index) {
+                            final product = filteredProducts[index];
+                            return ListTile(
+                              leading: product.thumbnail != null
+                                  ? Image.network(
+                                      product.thumbnail,
+                                      width: 50,
+                                      height: 50,
+                                      fit: BoxFit.cover,
+                                      errorBuilder:
+                                          (context, error, stackTrace) =>
+                                              Icon(Icons.image_not_supported),
+                                    )
+                                  : Icon(Icons.shopping_bag),
+                              title: Text(product.title),
+                              subtitle: Text(
+                                "\$${product.price.toStringAsFixed(2)}",
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.green,
+                                ),
+                              ),
+                              onTap: () {
+                                // Close search
+                                _toggleSearch();
+
+                                // Navigate to product details
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => ProductDetailsScreen(
+                                      productId: product.id,
+                                    ),
+                                  ),
+                                );
+                              },
+                            );
+                          },
+                        ),
+                ),
+              ),
+            ),
+        ],
+      ),
       bottomNavigationBar: BottomNavigationBar(
         type: BottomNavigationBarType.fixed,
         backgroundColor: Colors.white,
@@ -130,6 +259,10 @@ class _HomePageState extends State<HomePage> {
         onTap: (index) {
           setState(() {
             currentIndex = index;
+            // Close search when navigating
+            if (isSearching) {
+              _toggleSearch();
+            }
           });
         },
         items: [
@@ -475,7 +608,7 @@ class _FiltersScreenState extends State<FiltersScreen> {
   String sortBy = 'Newest';
   RangeValues priceRange = const RangeValues(0, 2000);
   int minRating = -1;
-  bool showFilters = true;
+  bool showFilters = false;
   bool isLoading = true;
 
   bool get hasActiveFilters {
