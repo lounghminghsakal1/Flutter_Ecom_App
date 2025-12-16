@@ -69,8 +69,7 @@ class _HomePageState extends State<HomePage> {
       print(allProducts[0]);
     } catch (err) {
       print("Error in data fetching $err");
-    }
-  }
+    }  }
 
   void _filterProducts() {
     setState(() {
@@ -106,10 +105,10 @@ class _HomePageState extends State<HomePage> {
             ? TextField(
                 controller: searchController,
                 autofocus: true,
-                style: TextStyle(color: Colors.white),
+                style: TextStyle(color: Colors.grey[800]),
                 decoration: InputDecoration(
                   hintText: "Search products...",
-                  hintStyle: TextStyle(color: Colors.grey[800]),
+                  hintStyle: TextStyle(color: Colors.black),
                   filled: true,
                   fillColor: Colors.grey[200],
                   border: OutlineInputBorder(
@@ -147,6 +146,9 @@ class _HomePageState extends State<HomePage> {
             ListTile(
               title: Text("Home"),
               onTap: () {
+                setState(() {
+                  currentIndex = 0;
+                });
                 Navigator.pop(context);
               },
             ),
@@ -573,7 +575,7 @@ class _TrendingProductsState extends State<TrendingProducts> {
                 crossAxisCount: 2,
                 childAspectRatio: 0.6,
                 crossAxisSpacing: 12,
-                mainAxisSpacing: 12,
+                mainAxisSpacing: 14,
               ),
               itemCount: trendingProducts.length,
               itemBuilder: (context, index) {
